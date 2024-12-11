@@ -1,42 +1,47 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+.myPetContainer {
+    width: 100%;
+    height: 90vh;
+    display: flex;
+    gap: 2rem;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.myPetsCards {
+    width: 50%;
+    height: 100%;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow: auto;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.petCard {
+    display: flex;
+    border: 1px solid gray;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+
+.petDetail {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
 }
 
-.card {
-  padding: 2em;
+.petDetail>img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
 }
 
-.read-the-docs {
-  color: #888;
+.muibtns {
+    display: flex;
+    gap: 1rem;
+}
+
+.myPetForm {
+    width: 50%;
+    height: 100%;
 }
