@@ -12,7 +12,10 @@ import { deepPurple } from "@mui/material/colors";
 
 function ResponsiveAppBar() {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-  const { data: loggedInUserData } = useLoginUserDataQuery();
+  const { data: loggedInUserData } = useLoginUserDataQuery(undefined, {
+    skip: !isLoggedIn,
+  });
+
   return (
     <AppBar position="static">
       <Toolbar>
