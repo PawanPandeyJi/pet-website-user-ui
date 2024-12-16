@@ -1,9 +1,9 @@
 import { Card, CardContent, Grid, Typography, Avatar, Box, Button, Divider } from "@mui/material";
 import { useDoctorQuery } from "../store/api/doctor-api";
+import { Link } from "react-router-dom";
 
 const VetPage = () => {
   const { data: doctors } = useDoctorQuery();
-  console.log(doctors);
   return (
     <div style={{ display: "flex",  flexWrap: "wrap" }}>
       {doctors &&
@@ -70,6 +70,8 @@ const VetPage = () => {
                   color="primary"
                   size="large"
                   fullWidth
+                  component={Link}
+                  to={`/appointment/${val.id}`}
                   sx={{
                     textTransform: "none",
                     fontWeight: "bold",
