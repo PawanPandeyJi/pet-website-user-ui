@@ -30,7 +30,7 @@ type CreatePet = {
 export const petApi = createApi({
   reducerPath: "petApi",
   baseQuery: tokenFetchBaseQuery({
-    baseUrl: "http://localhost:8000/api/user",
+    baseUrl: "http://localhost:8000",
   }),
   tagTypes: ["pet"],
   endpoints: (builder) => ({

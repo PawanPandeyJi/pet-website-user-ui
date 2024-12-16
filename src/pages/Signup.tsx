@@ -31,7 +31,7 @@ function Signup() {
   const handleSubmit: React.ChangeEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
     try {
-      const response = await createUsers(formData).unwrap();
+      const response = await createUsers({ user: { ...formData }, type: "user" }).unwrap();
       disPatch(login(response.token));
       console.log(response.token);
       navigate("/");

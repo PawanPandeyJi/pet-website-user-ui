@@ -1,6 +1,12 @@
-import { Box, TextField, MenuItem, Button, Grid, Snackbar } from "@mui/material";
+import { Box, TextField, MenuItem, Button, Grid, Snackbar, Avatar } from "@mui/material";
 import { useState } from "react";
-import { BackendError, useCreatePetsMutation, useDeletePetMutation, useGetPetsQuery } from "../store/api/pet-api";
+import {
+  BackendError,
+  useCreatePetsMutation,
+  useDeletePetMutation,
+  useGetPetsQuery,
+} from "../store/api/pet-api";
+import { PetsSharp } from "@mui/icons-material";
 
 const MyPet = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -20,6 +26,7 @@ const MyPet = () => {
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [previewPet, setPreviewPet] = useState("");
 
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const { name, value } = e.target;
@@ -30,6 +37,7 @@ const MyPet = () => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
+      setPreviewPet(URL.createObjectURL(selectedFile));
     }
   };
 
@@ -51,7 +59,6 @@ const MyPet = () => {
     data.append("gender", formData.gender);
     data.append("color", formData.color);
     data.append("image", file);
-    console.log(data);
 
     try {
       await createPets(data).unwrap();
@@ -65,6 +72,7 @@ const MyPet = () => {
         color: "",
       });
       setFile(null);
+      setPreviewPet("");
     } catch (error) {
       const message = (error as BackendError)?.data?.message || "An unexpected error occurred.";
       setErrorMessage(message);
@@ -72,15 +80,15 @@ const MyPet = () => {
     }
   };
 
-  const handleDelete = async(id:string) => {
+  const handleDelete = async (id: string) => {
     try {
-      await deletePet(id)
+      await deletePet(id);
     } catch (error) {
       const message = (error as BackendError)?.data?.message || "An unexpected error occurred.";
       setErrorMessage(message);
       setSnackbarOpen(true);
     }
-  }
+  };
 
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
@@ -120,7 +128,11 @@ const MyPet = () => {
                     <Button variant="contained" color="success">
                       View
                     </Button>
-                    <Button variant="contained" color="warning" onClick={() => handleDelete(val.id)}>
+                    <Button
+                      variant="contained"
+                      color="warning"
+                      onClick={() => handleDelete(val.id)}
+                    >
                       Delete
                     </Button>
                   </div>
@@ -134,13 +146,24 @@ const MyPet = () => {
             onSubmit={handleSubmit}
             sx={{
               maxWidth: 500,
-              margin: "50px auto",
-              padding: 3,
+              margin: "25px auto",
+              padding: 2,
               border: "1px solid #ccc",
               borderRadius: 2,
               boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
             }}
           >
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
+              {previewPet ? (
+                <Avatar alt="Remy Sharp" src={previewPet} sx={{ width: 100, height: 100 }} />
+              ) : (
+                <>
+                  <Avatar sx={{ width: 100, height: 100 }}>
+                    <PetsSharp />
+                  </Avatar>
+                </>
+              )}
+            </div>
             <TextField
               label="Pet Name"
               name="petName"
@@ -218,7 +241,7 @@ const MyPet = () => {
                 />
               </Grid>
             </Grid>
-            <Button variant="contained" component="label" fullWidth sx={{ marginBottom: 2 }}>
+            <Button variant="outlined" component="label" fullWidth sx={{ marginBottom: 2 }}>
               Upload Image
               <input type="file" hidden accept="image/*" onChange={handleImageUpload} />
             </Button>
