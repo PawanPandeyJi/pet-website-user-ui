@@ -13,12 +13,17 @@ import {
   Radio,
   RadioGroup,
   Select,
+  Snackbar,
   Typography,
 } from "@mui/material";
 import { deepPurple } from "@mui/material/colors";
 import { useParams } from "react-router-dom";
 import { useDoctorQuery } from "../store/api/doctor-api";
-import { useCreateAppointmentMutation, useGetPetsQuery } from "../store/api/pet-api";
+import {
+  AppointmentError,
+  useCreateAppointmentMutation,
+  useGetPetsQuery,
+} from "../store/api/pet-api";
 import Loader from "../components/Loader";
 import { useLoginUserDataQuery } from "../store/api/auth-api";
 import NoDataMassage from "../components/NoDataMessage";
@@ -36,6 +41,9 @@ const Appointment = () => {
   const [selectedDay, setSelectedDay] = useState("");
   const [selectedPet, setSelectedPet] = useState("");
   const [open, setOpen] = useState(false);
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const [createAppointments] = useCreateAppointmentMutation();
   const { data: userId } = useLoginUserDataQuery();
@@ -59,9 +67,17 @@ const Appointment = () => {
         doctorId,
         appointmentDay: selectedDay,
       }).unwrap();
+      setSelectedDay("");
+      setSelectedPet("");
     } catch (error) {
-      console.log(error);
+      const message = (error as AppointmentError).data.message || "An unexpected error occured";
+      setErrorMessage(message);
+      setSnackbarOpen(true);
     }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
   };
 
   if (isLoading) {
@@ -200,6 +216,12 @@ const Appointment = () => {
           </Box>
         </Modal>
       </div>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        message={errorMessage}
+      />
     </Box>
   );
 };

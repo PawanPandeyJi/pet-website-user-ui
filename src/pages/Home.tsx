@@ -1,14 +1,9 @@
-import ConfirmCard from "../components/ConfirmCard"
-
-
-
 const Home = () => {
-
   return (
     <>
-      <ConfirmCard/>
+      <h1>Home</h1>
     </>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

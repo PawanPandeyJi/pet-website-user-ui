@@ -29,6 +29,13 @@ export type BackendError = {
   };
 };
 
+export type AppointmentError = {
+  status: number;
+  data: {
+    message: string;
+  };
+};
+
 type CreatePet = {
   message: string;
   token?: string;
@@ -63,7 +70,7 @@ export const petApi = createApi({
       }),
       invalidatesTags: ["pet"],
     }),
-    createAppointment: builder.mutation<void, RequestPetRegisterData>({
+    createAppointment: builder.mutation<AppointmentError, RequestPetRegisterData>({
       query: (appintmentForm) => ({
         url: "/appointment",
         method: "POST",
