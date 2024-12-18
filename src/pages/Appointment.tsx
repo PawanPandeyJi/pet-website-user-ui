@@ -18,7 +18,7 @@ import {
 import { deepPurple } from "@mui/material/colors";
 import { useParams } from "react-router-dom";
 import { useDoctorQuery } from "../store/api/doctor-api";
-import { useGetPetsQuery } from "../store/api/pet-api";
+import { useCreateAppointmentMutation, useGetPetsQuery } from "../store/api/pet-api";
 import Loader from "../components/Loader";
 import { useLoginUserDataQuery } from "../store/api/auth-api";
 import NoDataMassage from "../components/NoDataMessage";
@@ -32,25 +32,12 @@ const style = {
   p: 1,
 };
 
-export type RequestPetRegisterData = {
-  petId: string;
-  doctorId: string | undefined;
-  userId: string;
-  appointmentDay: string;
-};
-
 const Appointment = () => {
-  const [formData, setFormData] = useState<RequestPetRegisterData>({
-    petId: "",
-    doctorId: "",
-    userId: "",
-    appointmentDay: "",
-  });
-
   const [selectedDay, setSelectedDay] = useState("");
   const [selectedPet, setSelectedPet] = useState("");
   const [open, setOpen] = useState(false);
 
+  const [createAppointments] = useCreateAppointmentMutation();
   const { data: userId } = useLoginUserDataQuery();
   const { data: allPets } = useGetPetsQuery();
   const { data: doctors, isLoading } = useDoctorQuery();
@@ -58,20 +45,23 @@ const Appointment = () => {
 
   const doctor = useMemo(() => {
     return doctors?.find((doctor) => doctor.id === doctorId);
-  }, [doctors,doctorId]);
+  }, [doctors, doctorId]);
 
   const appointmentDays = doctor?.DoctorShedule.map((availableDays) => availableDays.availableDays);
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!userId?.id) return;
-    setFormData({
-      petId: selectedPet,
-      doctorId,
-      userId: userId.id,
-      appointmentDay: selectedDay,
-    });
-    console.log(formData);
+    try {
+      await createAppointments({
+        userId: userId.id,
+        petId: selectedPet,
+        doctorId,
+        appointmentDay: selectedDay,
+      }).unwrap();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   if (isLoading) {

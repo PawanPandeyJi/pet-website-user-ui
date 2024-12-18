@@ -15,6 +15,13 @@ type Pet = {
   updatedAt: string;
 };
 
+export type RequestPetRegisterData = {
+  petId: string;
+  doctorId: string | undefined;
+  userId: string;
+  appointmentDay: string;
+};
+
 export type BackendError = {
   status: number;
   data: {
@@ -56,7 +63,14 @@ export const petApi = createApi({
       }),
       invalidatesTags: ["pet"],
     }),
+    createAppointment: builder.mutation<void, RequestPetRegisterData>({
+      query: (appintmentForm) => ({
+        url: "/appointment",
+        method: "POST",
+        body: appintmentForm,
+      }),
+    }),
   }),
 });
 
-export const { useCreatePetsMutation, useGetPetsQuery, useDeletePetMutation } = petApi;
+export const { useCreatePetsMutation, useGetPetsQuery, useDeletePetMutation, useCreateAppointmentMutation } = petApi;
