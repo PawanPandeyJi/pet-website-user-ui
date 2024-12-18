@@ -45,7 +45,7 @@ function ResponsiveAppBar() {
                 Consult a Vet
               </Button>
               <Button component={Link} to="/myappointment" color="inherit">
-                My Apoointments
+                My Appointments
               </Button>
               <Button component={Link} to="/mypet" color="inherit">
                 My Pets
