@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Avatar,
   Box,
@@ -8,6 +8,7 @@ import {
   FormLabel,
   Grid,
   MenuItem,
+  Modal,
   Paper,
   Radio,
   RadioGroup,
@@ -20,6 +21,16 @@ import { useDoctorQuery } from "../store/api/doctor-api";
 import { useGetPetsQuery } from "../store/api/pet-api";
 import Loader from "../components/Loader";
 import { useLoginUserDataQuery } from "../store/api/auth-api";
+import NoDataMassage from "../components/NoDataMessage";
+import CreatePetForm from "../components/CreatePetForm";
+
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  p: 1,
+};
 
 export type RequestPetRegisterData = {
   petId: string;
@@ -38,39 +49,56 @@ const Appointment = () => {
 
   const [selectedDay, setSelectedDay] = useState("");
   const [selectedPet, setSelectedPet] = useState("");
+  const [open, setOpen] = useState(false);
 
-  const { data: loggedInUserData } = useLoginUserDataQuery();
+  const { data: userId } = useLoginUserDataQuery();
   const { data: allPets } = useGetPetsQuery();
   const { data: doctors, isLoading } = useDoctorQuery();
   const { id: doctorId } = useParams();
 
-  const doctor = doctors?.find((doctor) => doctor.id === doctorId);
+  const doctor = useMemo(() => {
+    return doctors?.find((doctor) => doctor.id === doctorId);
+  }, [doctors,doctorId]);
 
   const appointmentDays = doctor?.DoctorShedule.map((availableDays) => availableDays.availableDays);
-  if (!appointmentDays || !loggedInUserData) {
-    return "";
-  }
-
-  const handleBookAppointment = () => {
-    setFormData({
-      petId: selectedPet,
-      doctorId: doctorId,
-      userId: loggedInUserData?.id,
-      appointmentDay: selectedDay,
-    });
-  };
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!userId?.id) return;
+    setFormData({
+      petId: selectedPet,
+      doctorId,
+      userId: userId.id,
+      appointmentDay: selectedDay,
+    });
     console.log(formData);
   };
 
   if (isLoading) {
     return <Loader />;
   }
-  if (!doctor) {
-    return <>No doctor found!</>;
+
+  if (!userId || !doctor) {
+    return (
+      <>
+        <NoDataMassage
+          message={
+            <>
+              No User or doctor data found!
+              <br /> Login To Book Appointments
+            </>
+          }
+        />
+      </>
+    );
   }
+
+  if (!appointmentDays) {
+    return <>No available days!</>;
+  }
+
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
   return (
     <Box sx={{ padding: 4 }}>
       <Grid container spacing={4}>
@@ -150,7 +178,7 @@ const Appointment = () => {
                 </Select>
               </Box>
 
-              <Button variant="contained" sx={{ marginBottom: 2 }}>
+              <Button onClick={handleOpen} variant="contained" sx={{ marginBottom: 2 }}>
                 Add Pet
               </Button>
 
@@ -168,10 +196,6 @@ const Appointment = () => {
                   ))}
                 </RadioGroup>
               </Box>
-
-              <Button variant="contained" color="primary" fullWidth onClick={handleBookAppointment}>
-                Book Appointment
-              </Button>
               <Button variant="contained" color="primary" fullWidth type="submit">
                 Submit
               </Button>
@@ -179,6 +203,13 @@ const Appointment = () => {
           </form>
         </Grid>
       </Grid>
+      <div>
+        <Modal open={open} onClose={handleClose}>
+          <Box sx={style}>
+            <CreatePetForm onClose={() => setOpen(false)} />
+          </Box>
+        </Modal>
+      </div>
     </Box>
   );
 };

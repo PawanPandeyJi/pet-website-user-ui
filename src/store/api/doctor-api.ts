@@ -1,7 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { tokenFetchBaseQuery } from "./api";
 
-type Doctors = {
+export type Doctors = {
   id: string;
   dob: string;
   gender: string;

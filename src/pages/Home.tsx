@@ -1,3 +1,4 @@
+import ConfirmCard from "../components/ConfirmCard"
 
 
 
@@ -5,7 +6,7 @@ const Home = () => {
 
   return (
     <>
-      <h1>Home</h1>
+      <ConfirmCard/>
     </>
   )
 }

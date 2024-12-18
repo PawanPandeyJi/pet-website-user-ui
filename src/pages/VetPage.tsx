@@ -5,13 +5,13 @@ import { Link } from "react-router-dom";
 const VetPage = () => {
   const { data: doctors } = useDoctorQuery();
   return (
-    <div style={{ display: "flex",  flexWrap: "wrap" }}>
+    <div style={{ display: "flex",  flexWrap: "wrap",justifyContent: "space-around" }}>
       {doctors &&
         doctors.map((val) => {
           return (
             <Card key={val.id}
               sx={{
-                maxWidth: 600,
+                maxWidth: 700,
                 margin: "20px",
                 padding: 1,
                 borderRadius: 2,
@@ -25,7 +25,7 @@ const VetPage = () => {
                     <Avatar
                       src={val.profileImage}
                       alt={val.profileImage}
-                      sx={{ width: 140, height: 140, margin: "0 auto" }}
+                      sx={{ width: 180, height: 180, margin: "0 auto" }}
                     />
                     <Typography variant="h6" sx={{ marginTop: 1, fontWeight: "bold" }}>
                      {`${val.userAsDoctor.firstName} ${val.userAsDoctor.lastName}`}
@@ -37,7 +37,7 @@ const VetPage = () => {
                 </Grid>
 
                 <Grid item xs={12} md={8}>
-                  <CardContent>
+                  <CardContent sx={{marginLeft: "2rem"}}>
                     <Typography variant="h5" sx={{ fontWeight: "bold" }}>
                       Details
                     </Typography>
