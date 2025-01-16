@@ -12,7 +12,10 @@ import { deepPurple } from "@mui/material/colors";
 
 function ResponsiveAppBar() {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-  const { data: loggedInUserData } = useLoginUserDataQuery();
+  const { data: loggedInUserData } = useLoginUserDataQuery(undefined, {
+    skip: !isLoggedIn,
+  });
+
   return (
     <AppBar position="static">
       <Toolbar>
@@ -32,7 +35,7 @@ function ResponsiveAppBar() {
         >
           PetVet
         </Typography>
-        <Box sx={{ display: "flex", gap: 2}}>
+        <Box sx={{ display: "flex", gap: 2 }}>
           {isLoggedIn ? (
             <>
               <Button component={Link} to="/" color="inherit">
@@ -41,10 +44,16 @@ function ResponsiveAppBar() {
               <Button component={Link} to="/vet" color="inherit">
                 Consult a Vet
               </Button>
+              <Button component={Link} to="/myappointment" color="inherit">
+                My Appointments
+              </Button>
               <Button component={Link} to="/mypet" color="inherit">
                 My Pets
               </Button>
-              <Avatar sx={{ color: deepPurple[500] }}>{loggedInUserData && (`${loggedInUserData.firstName[0]}${loggedInUserData.lastName[0]}`).toUpperCase()}</Avatar>
+              <Avatar sx={{ color: deepPurple[500] }}>
+                {loggedInUserData &&
+                  `${loggedInUserData.firstName[0]}${loggedInUserData.lastName[0]}`.toUpperCase()}
+              </Avatar>
               <Button variant="contained" component={Link} to="/logout" color="warning">
                 Logout
               </Button>
@@ -57,10 +66,16 @@ function ResponsiveAppBar() {
               <Button component={Link} to="/vet" color="inherit">
                 Consult a Vet
               </Button>
-              <Button  variant="contained" component={Link} to="/login" color="success" sx={{ marginLeft: "auto" }}>
+              <Button
+                variant="contained"
+                component={Link}
+                to="/login"
+                color="success"
+                sx={{ marginLeft: "auto" }}
+              >
                 Login
               </Button>
-              <Button  variant="contained" component={Link} to="/signup" color="warning">
+              <Button variant="contained" component={Link} to="/signup" color="warning">
                 Signup
               </Button>
             </>

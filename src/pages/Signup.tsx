@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Box, Button, Snackbar, TextField, Typography } from "@mui/material";
 import { BackendError, useCreateUsersMutation } from "../store/api/auth-api";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { login } from "../store/feature/auth/authSlice";
-import { RootState } from "../store/store";
 
 function Signup() {
   const [formData, setFormData] = useState({
@@ -15,9 +13,7 @@ function Signup() {
   });
 
   const [createUsers] = useCreateUsersMutation();
-  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const disPatch = useDispatch();
-  const navigate = useNavigate();
 
   // Snackbar state
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -31,10 +27,9 @@ function Signup() {
   const handleSubmit: React.ChangeEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
     try {
-      const response = await createUsers(formData).unwrap();
+      const response = await createUsers({ user: { ...formData }, type: "user" }).unwrap();
       disPatch(login(response.token));
-      console.log(response.token);
-      navigate("/");
+      window.location.href = "/";
     } catch (err) {
       const message = (err as BackendError)?.data?.message || "An unexpected error occurred.";
       setErrorMessage(message);
@@ -46,12 +41,6 @@ function Signup() {
     setSnackbarOpen(false);
   };
 
-  useEffect(() => {
-    if (isLoggedIn) {
-      window.location.reload();
-      navigate("/");
-    }
-  }, [isLoggedIn, navigate]);
   return (
     <Box
       sx={{
