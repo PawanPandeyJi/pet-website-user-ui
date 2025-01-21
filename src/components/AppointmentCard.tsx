@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { VaccinesOutlined } from "@mui/icons-material";
 
+
 type AppointmentDataProps = {
   doctorImage: string;
   doctorName: string;
@@ -18,8 +19,10 @@ type AppointmentDataProps = {
   time: string;
   day: string;
   canceled: boolean;
+  isJoined: boolean;
   canleAppointment: () => void;
 };
+
 
 const ConfirmCard = (props: AppointmentDataProps) => {
   return (
@@ -71,9 +74,11 @@ const ConfirmCard = (props: AppointmentDataProps) => {
         >
           Cancel
         </Button>
-        <Tooltip title={`Join link will available on ${props.day}`}>
+        <Tooltip
+          title={!props.isJoined ? `You Can Join Chat on ${props.day}` : `You can join the chat`}
+        >
           <span>
-            <Button variant="contained" color="primary" disabled>
+            <Button variant="contained" color="primary" disabled={!props.isJoined}>
               Join
             </Button>
           </span>

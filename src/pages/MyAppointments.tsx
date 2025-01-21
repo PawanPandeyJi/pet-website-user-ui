@@ -1,11 +1,24 @@
 import ConfirmCard from "../components/AppointmentCard";
 import Loader from "../components/Loader";
 import NoDataMassage from "../components/NoDataMessage";
+import { io } from "socket.io-client";
 import { useAppointmentsQuery, useCancelAppointmentMutation } from "../store/api/pet-api";
+import { useEffect } from "react";
+
+const socket = io("http://localhost:8000", {});
 
 const MyAppointments = () => {
-  const { data: appointments, isLoading } = useAppointmentsQuery();
+  const { data: appointments, isLoading, refetch } = useAppointmentsQuery();
   const [cancelAppointment] = useCancelAppointmentMutation();
+
+  useEffect(() => {
+    socket.on("appointmentUpdatedOnDisconnect", () => {
+      refetch();
+    });
+    socket.on("appointmentUpdatedOnConnect", () => {
+      refetch();
+    });
+  }, [refetch]);
 
   const handleCancel = async (id: string) => {
     try {
@@ -19,7 +32,7 @@ const MyAppointments = () => {
     return <Loader />;
   }
 
-  if ( !appointments || appointments.length === 0 ) {
+  if (!appointments || appointments.length === 0) {
     return <NoDataMassage message={<>No more appointments to show!</>} />;
   }
   return (
@@ -46,6 +59,7 @@ const MyAppointments = () => {
               day={val.appointmentDay}
               canleAppointment={() => handleCancel(val.id)}
               canceled={val.isCanceled}
+              isJoined={val.canJoin}
             />
           );
         })}
