@@ -11,7 +11,9 @@ import {
 } from "@mui/material";
 import { VaccinesOutlined } from "@mui/icons-material";
 import ChatBox from "./ChatBox";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useCreateRoomMutation, useGetRoomsQuery } from "../store/api/chat.ts";
+import { useLoginUserDataQuery } from "../store/api/auth-api.ts";
 
 const style = {
   position: "absolute",
@@ -31,13 +33,49 @@ type AppointmentDataProps = {
   canceled: boolean;
   isJoined: boolean;
   canleAppointment: () => void;
+  doctorId: string;
+  appointmentId: string;
 };
 
 const AppointmentCard = (props: AppointmentDataProps) => {
   const [open, setOpen] = useState(false);
+  const [roomId, setRoomId] = useState<string>();
+
+  const { data: loginUserData } = useLoginUserDataQuery();
+  const { data: rooms, isLoading: isRoomsLoading } =
+    useGetRoomsQuery(undefined);
+  const [createRoomApi] = useCreateRoomMutation();
 
   const handleClose = () => setOpen(false);
-  const handleOpen = () => setOpen(true);
+
+  const joinAppointment = useCallback(async () => {
+    if (!loginUserData?.id) return;
+    if (isRoomsLoading) return;
+
+    const previousRoom = rooms?.find(
+      (room) => room.appointmentId === props.appointmentId,
+    );
+
+    if (!previousRoom) {
+      const room = await createRoomApi({
+        participant: props.doctorId,
+        appointmentId: props.appointmentId,
+      }).unwrap();
+      setRoomId(room.id);
+    } else {
+      setRoomId(previousRoom.id);
+    }
+
+    setOpen(true);
+  }, [
+    createRoomApi,
+    isRoomsLoading,
+    loginUserData?.id,
+    props.appointmentId,
+    props.doctorId,
+    rooms,
+  ]);
+
   return (
     <Card
       sx={{
@@ -49,10 +87,22 @@ const AppointmentCard = (props: AppointmentDataProps) => {
         position: "relative",
       }}
     >
-      <Box display="flex" justifyContent="center" alignItems="center" gap={2} marginBottom={2}>
-        <Avatar sx={{ bgcolor: "primary.main", height: 80, width: 80 }} src={props.doctorImage} />
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        gap={2}
+        marginBottom={2}
+      >
+        <Avatar
+          sx={{ bgcolor: "primary.main", height: 80, width: 80 }}
+          src={props.doctorImage}
+        />
         <VaccinesOutlined color="disabled" sx={{ height: 40, width: 40 }} />
-        <Avatar sx={{ bgcolor: "secondary.main", height: 80, width: 80 }} src={props.petImage} />
+        <Avatar
+          sx={{ bgcolor: "secondary.main", height: 80, width: 80 }}
+          src={props.petImage}
+        />
       </Box>
 
       <CardContent>
@@ -88,13 +138,17 @@ const AppointmentCard = (props: AppointmentDataProps) => {
           Cancel
         </Button>
         <Tooltip
-          title={!props.isJoined ? `You Can Join Chat on ${props.day}` : `You can join the chat`}
+          title={
+            !props.isJoined
+              ? `You Can Join Chat on ${props.day}`
+              : `You can join the chat`
+          }
         >
           <span>
             <Button
               variant="contained"
               color="primary"
-              onClick={handleOpen}
+              onClick={joinAppointment}
               disabled={!props.isJoined}
             >
               Join
@@ -122,9 +176,10 @@ const AppointmentCard = (props: AppointmentDataProps) => {
         </Typography>
       ) : null}
       <div>
-        <Modal open={open} onClose={handleClose}>
+        <Modal open={open && !!roomId} onClose={handleClose}>
           <Box sx={style}>
             <ChatBox
+              roomId={roomId ?? ""}
               onClose={() => setOpen(false)}
               doctorImage={props.doctorImage}
               doctorName={props.doctorName}
