@@ -29,6 +29,7 @@ export type Appointment = {
   petId: string;
   appointmentDay: string;
   isCanceled: boolean;
+  canJoin: boolean;
   appointmentToDoctor: {
     id: string;
     dob: string;
