@@ -7,9 +7,19 @@ import {
   Button,
   Box,
   Tooltip,
+  Modal,
 } from "@mui/material";
 import { VaccinesOutlined } from "@mui/icons-material";
+import ChatBox from "./ChatBox";
+import { useState } from "react";
 
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  p: 1,
+};
 
 type AppointmentDataProps = {
   doctorImage: string;
@@ -23,8 +33,11 @@ type AppointmentDataProps = {
   canleAppointment: () => void;
 };
 
+const AppointmentCard = (props: AppointmentDataProps) => {
+  const [open, setOpen] = useState(false);
 
-const ConfirmCard = (props: AppointmentDataProps) => {
+  const handleClose = () => setOpen(false);
+  const handleOpen = () => setOpen(true);
   return (
     <Card
       sx={{
@@ -78,7 +91,12 @@ const ConfirmCard = (props: AppointmentDataProps) => {
           title={!props.isJoined ? `You Can Join Chat on ${props.day}` : `You can join the chat`}
         >
           <span>
-            <Button variant="contained" color="primary" disabled={!props.isJoined}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleOpen}
+              disabled={!props.isJoined}
+            >
               Join
             </Button>
           </span>
@@ -103,8 +121,19 @@ const ConfirmCard = (props: AppointmentDataProps) => {
           Canceled
         </Typography>
       ) : null}
+      <div>
+        <Modal open={open} onClose={handleClose}>
+          <Box sx={style}>
+            <ChatBox
+              onClose={() => setOpen(false)}
+              doctorImage={props.doctorImage}
+              doctorName={props.doctorName}
+            />
+          </Box>
+        </Modal>
+      </div>
     </Card>
   );
 };
 
-export default ConfirmCard;
+export default AppointmentCard;

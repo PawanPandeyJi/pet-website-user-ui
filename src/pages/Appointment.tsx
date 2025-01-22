@@ -212,7 +212,7 @@ const Appointment = () => {
       <div>
         <Modal open={open} onClose={handleClose}>
           <Box sx={style}>
-            <CreatePetForm onClose={() => setOpen(false)} />
+            <CreatePetForm />
           </Box>
         </Modal>
       </div>

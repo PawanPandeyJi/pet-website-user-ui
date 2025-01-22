@@ -1,9 +1,9 @@
-import ConfirmCard from "../components/AppointmentCard";
 import Loader from "../components/Loader";
 import NoDataMassage from "../components/NoDataMessage";
 import { io } from "socket.io-client";
 import { useAppointmentsQuery, useCancelAppointmentMutation } from "../store/api/pet-api";
 import { useEffect } from "react";
+import AppointmentCard from "../components/AppointmentCard";
 
 const socket = io("http://localhost:8000", {});
 
@@ -49,7 +49,7 @@ const MyAppointments = () => {
       >
         {appointments.map((val) => {
           return (
-            <ConfirmCard
+            <AppointmentCard
               key={val.id}
               doctorImage={val.vetImage}
               petImage={val.petImage}
