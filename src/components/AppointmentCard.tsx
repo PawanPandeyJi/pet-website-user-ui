@@ -11,10 +11,13 @@ import {
 } from "@mui/material";
 import { VaccinesOutlined } from "@mui/icons-material";
 import ChatBox from "./ChatBox";
-import { useCallback, useState } from "react";
+import { useCallback,   useEffect,   useState } from "react";
 import { useCreateRoomMutation, useGetRoomsQuery } from "../store/api/chat.ts";
 import { useLoginUserDataQuery } from "../store/api/auth-api.ts";
+import { io } from "socket.io-client";
 
+
+const socket = io("http://localhost:8000", {});
 const style = {
   position: "absolute",
   top: "50%",
@@ -38,35 +41,40 @@ type AppointmentDataProps = {
 };
 
 const AppointmentCard = (props: AppointmentDataProps) => {
-  const [open, setOpen] = useState(false);
+  const [openChatBox, setOpenChatBox] = useState(false);
   const [roomId, setRoomId] = useState<string>();
 
+  
   const { data: loginUserData } = useLoginUserDataQuery();
-  const { data: rooms, isLoading: isRoomsLoading } =
-    useGetRoomsQuery(undefined);
+  const { data: rooms, isLoading: isRoomsLoading,refetch } =
+  useGetRoomsQuery(undefined);
+
   const [createRoomApi] = useCreateRoomMutation();
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => setOpenChatBox(false);
 
   const joinAppointment = useCallback(async () => {
     if (!loginUserData?.id) return;
     if (isRoomsLoading) return;
-
+    
+    let currentRoomId;
+  
     const previousRoom = rooms?.find(
-      (room) => room.appointmentId === props.appointmentId,
+      (room) => room.appointmentId === props.appointmentId
     );
-
+  
     if (!previousRoom) {
       const room = await createRoomApi({
         participant: props.doctorId,
         appointmentId: props.appointmentId,
       }).unwrap();
-      setRoomId(room.id);
+      currentRoomId = room.id;
     } else {
-      setRoomId(previousRoom.id);
+      currentRoomId = previousRoom.id;
     }
-
-    setOpen(true);
+  
+    setRoomId(currentRoomId); 
+    setOpenChatBox(true);
   }, [
     createRoomApi,
     isRoomsLoading,
@@ -75,6 +83,15 @@ const AppointmentCard = (props: AppointmentDataProps) => {
     props.doctorId,
     rooms,
   ]);
+
+  useEffect(() => {
+    const handleAskToJoin = () => refetch();
+    socket.on("askToJoin", handleAskToJoin);
+  
+    return () => {
+      socket.off("askToJoin", handleAskToJoin);
+    };
+  }, [refetch]);
 
   return (
     <Card
@@ -176,11 +193,11 @@ const AppointmentCard = (props: AppointmentDataProps) => {
         </Typography>
       ) : null}
       <div>
-        <Modal open={open && !!roomId} onClose={handleClose}>
+        <Modal open={openChatBox && !!roomId} onClose={handleClose}>
           <Box sx={style}>
             <ChatBox
               roomId={roomId ?? ""}
-              onClose={() => setOpen(false)}
+              onClose={() => setOpenChatBox(false)}
               doctorImage={props.doctorImage}
               doctorName={props.doctorName}
             />

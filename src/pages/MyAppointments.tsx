@@ -54,7 +54,7 @@ const MyAppointments = () => {
           return (
             <AppointmentCard
               appointmentId={appointment.id}
-              doctorId={appointment.doctorId}
+              doctorId={appointment.appointmentToDoctor.userAsDoctor.id}
               key={appointment.id}
               doctorImage={appointment.vetImage}
               petImage={appointment.petImage}

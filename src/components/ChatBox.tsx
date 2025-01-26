@@ -10,12 +10,15 @@ import {
   IconButton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { io } from "socket.io-client";
 import {
   useCreateMessageMutation,
   useGetMessagesQuery,
 } from "../store/api/chat.ts";
 import { useLoginUserDataQuery } from "../store/api/auth-api.ts";
+
+const socket = io("http://localhost:8000", {});
 
 type ModalFormProps = {
   doctorImage: string;
@@ -28,13 +31,15 @@ const ChatBox = (props: ModalFormProps) => {
   const [message, setMessage] = useState("");
 
   const { data: loginUserData } = useLoginUserDataQuery();
-  const { data: messages } = useGetMessagesQuery(props.roomId, {
+  const { data: messages, refetch, isSuccess } = useGetMessagesQuery(props.roomId, {
     skip: !props.roomId,
   });
 
+  const inputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [createMessageApi] = useCreateMessageMutation();
 
-  const sendMessage = useCallback(async () => {
+  const sendMessage = useCallback(async () => {           
     if (!loginUserData?.id) return;
 
     await createMessageApi({
@@ -44,7 +49,24 @@ const ChatBox = (props: ModalFormProps) => {
     }).unwrap();
 
     setMessage("");
+    inputRef.current?.focus()
   }, [createMessageApi, loginUserData?.id, message, props.roomId]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      socket.on("messageUpdatedOnCreate", () => {
+        refetch();
+      });
+
+      return () => {
+        socket.off("messageUpdatedOnCreate");
+      };
+    }
+  }, [refetch, isSuccess]);
 
   return (
     <Paper
@@ -59,7 +81,6 @@ const ChatBox = (props: ModalFormProps) => {
         position: "relative",
       }}
     >
-      {/* Header */}
       <Box
         sx={{
           display: "flex",
@@ -91,7 +112,6 @@ const ChatBox = (props: ModalFormProps) => {
         </IconButton>
       </Box>
 
-      {/* Message List */}
       <List
         sx={{
           flexGrow: 1,
@@ -101,26 +121,38 @@ const ChatBox = (props: ModalFormProps) => {
           p: 1,
         }}
       >
-        {messages?.map((message) => {
-          return (
-            <ListItem sx={{ justifyContent: "flex-start" }}>
-              <Box
-                sx={{
-                  bgcolor: "#f1f1f1",
-                  p: 1,
-                  borderRadius: 2,
-                  maxWidth: "70%",
-                }}
-              >
-                <Typography variant="body2">{message.message}</Typography>
-              </Box>
-            </ListItem>
-          );
-        })}
+         {messages?.map((message) => (
+      <ListItem
+        key={message.id}
+        sx={{
+          justifyContent:
+            message.senderId === loginUserData?.id ? "flex-end" : "flex-start",
+        }}
+      >
+        <Box
+          sx={{
+            bgcolor:
+              message.senderId === loginUserData?.id ? "#1976d2" : "#f1f1f1",
+            color: message.senderId === loginUserData?.id ? "#fff" : "#000",
+            p: 1,
+            borderRadius: 2,
+            maxWidth: "70%",
+            wordBreak: "break-word",
+          }}
+        >
+          <Typography variant="body2">{message.message}</Typography>
+        </Box>
+      </ListItem>
+    ))}
+        <div ref={messagesEndRef} />
       </List>
 
-      {/* Input and Send Button */}
       <Box
+       component="form"
+       onSubmit={(e) => {
+         e.preventDefault();
+         sendMessage();
+       }}
         sx={{
           display: "flex",
           alignItems: "center",
@@ -129,6 +161,7 @@ const ChatBox = (props: ModalFormProps) => {
       >
         <TextField
           fullWidth
+          inputRef={inputRef}
           variant="outlined"
           size="small"
           placeholder="Type your message..."
@@ -143,7 +176,7 @@ const ChatBox = (props: ModalFormProps) => {
         >
           Send
         </Button>
-      </Box>
+      </Box>    
     </Paper>
   );
 };
