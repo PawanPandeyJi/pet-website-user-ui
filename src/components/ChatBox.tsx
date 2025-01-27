@@ -25,6 +25,8 @@ type ModalFormProps = {
   doctorName: string;
   onClose?: () => void;
   roomId: string;
+  isJoined: boolean;
+  isChatEnded: boolean;
 };
 
 const ChatBox = (props: ModalFormProps) => {
@@ -146,8 +148,19 @@ const ChatBox = (props: ModalFormProps) => {
     ))}
         <div ref={messagesEndRef} />
       </List>
-
-      <Box
+    {
+      !props.isJoined && props.isChatEnded ? (
+        <Button
+        variant="contained"
+        color="success"
+        sx={{ mt: 2 }}
+        // onClick={sendMessage}
+      >
+        Download Prescription
+      </Button>
+      ) : (
+        <>
+        <Box
        component="form"
        onSubmit={(e) => {
          e.preventDefault();
@@ -177,6 +190,9 @@ const ChatBox = (props: ModalFormProps) => {
           Send
         </Button>
       </Box>    
+        </>
+      )
+    }
     </Paper>
   );
 };

@@ -157,7 +157,7 @@ const AppointmentCard = (props: AppointmentDataProps) => {
               <Button
                 variant="contained"
                 color="success"
-                // onClick={joinAppointment}
+                onClick={joinAppointment}
               >
                 View Chat
               </Button>
@@ -221,6 +221,8 @@ const AppointmentCard = (props: AppointmentDataProps) => {
               onClose={() => setOpenChatBox(false)}
               doctorImage={props.doctorImage}
               doctorName={props.doctorName}
+              isJoined={props.isJoined}
+              isChatEnded={props.isChatEnded}
             />
           </Box>
         </Modal>
