@@ -11,8 +11,13 @@ import {
 } from "@mui/material";
 import { VaccinesOutlined } from "@mui/icons-material";
 import ChatBox from "./ChatBox";
-import { useState } from "react";
+import { useCallback,   useEffect,   useState } from "react";
+import { useCreateRoomMutation, useGetRoomsQuery } from "../store/api/chat.ts";
+import { useLoginUserDataQuery } from "../store/api/auth-api.ts";
+import { io } from "socket.io-client";
 
+
+const socket = io("http://localhost:8000", {});
 const style = {
   position: "absolute",
   top: "50%",
@@ -31,13 +36,63 @@ type AppointmentDataProps = {
   canceled: boolean;
   isJoined: boolean;
   canleAppointment: () => void;
+  doctorId: string;
+  appointmentId: string;
 };
 
 const AppointmentCard = (props: AppointmentDataProps) => {
-  const [open, setOpen] = useState(false);
+  const [openChatBox, setOpenChatBox] = useState(false);
+  const [roomId, setRoomId] = useState<string>();
 
-  const handleClose = () => setOpen(false);
-  const handleOpen = () => setOpen(true);
+  
+  const { data: loginUserData } = useLoginUserDataQuery();
+  const { data: rooms, isLoading: isRoomsLoading,refetch } =
+  useGetRoomsQuery(undefined);
+
+  const [createRoomApi] = useCreateRoomMutation();
+
+  const handleClose = () => setOpenChatBox(false);
+
+  const joinAppointment = useCallback(async () => {
+    if (!loginUserData?.id) return;
+    if (isRoomsLoading) return;
+    
+    let currentRoomId;
+  
+    const previousRoom = rooms?.find(
+      (room) => room.appointmentId === props.appointmentId
+    );
+  
+    if (!previousRoom) {
+      const room = await createRoomApi({
+        participant: props.doctorId,
+        appointmentId: props.appointmentId,
+      }).unwrap();
+      currentRoomId = room.id;
+    } else {
+      currentRoomId = previousRoom.id;
+    }
+  
+    setRoomId(currentRoomId); 
+    setOpenChatBox(true);
+  }, [
+    createRoomApi,
+    isRoomsLoading,
+    loginUserData?.id,
+    props.appointmentId,
+    props.doctorId,
+    rooms,
+  ]);
+
+  useEffect(() => {
+    const handleAskToJoin = () => refetch();
+    socket.on("askToJoin", handleAskToJoin);
+  
+    return () => {
+      socket.off("askToJoin", handleAskToJoin);
+    };
+  }, [refetch]);
+
   return (
     <Card
       sx={{
@@ -49,10 +104,22 @@ const AppointmentCard = (props: AppointmentDataProps) => {
         position: "relative",
       }}
     >
-      <Box display="flex" justifyContent="center" alignItems="center" gap={2} marginBottom={2}>
-        <Avatar sx={{ bgcolor: "primary.main", height: 80, width: 80 }} src={props.doctorImage} />
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        gap={2}
+        marginBottom={2}
+      >
+        <Avatar
+          sx={{ bgcolor: "primary.main", height: 80, width: 80 }}
+          src={props.doctorImage}
+        />
         <VaccinesOutlined color="disabled" sx={{ height: 40, width: 40 }} />
-        <Avatar sx={{ bgcolor: "secondary.main", height: 80, width: 80 }} src={props.petImage} />
+        <Avatar
+          sx={{ bgcolor: "secondary.main", height: 80, width: 80 }}
+          src={props.petImage}
+        />
       </Box>
 
       <CardContent>
@@ -88,13 +155,17 @@ const AppointmentCard = (props: AppointmentDataProps) => {
           Cancel
         </Button>
         <Tooltip
-          title={!props.isJoined ? `You Can Join Chat on ${props.day}` : `You can join the chat`}
+          title={
+            !props.isJoined
+              ? `You Can Join Chat on ${props.day}`
+              : `You can join the chat`
+          }
         >
           <span>
             <Button
               variant="contained"
               color="primary"
-              onClick={handleOpen}
+              onClick={joinAppointment}
               disabled={!props.isJoined}
             >
               Join
@@ -122,10 +193,11 @@ const AppointmentCard = (props: AppointmentDataProps) => {
         </Typography>
       ) : null}
       <div>
-        <Modal open={open} onClose={handleClose}>
+        <Modal open={openChatBox && !!roomId} onClose={handleClose}>
           <Box sx={style}>
             <ChatBox
-              onClose={() => setOpen(false)}
+              roomId={roomId ?? ""}
+              onClose={() => setOpenChatBox(false)}
               doctorImage={props.doctorImage}
               doctorName={props.doctorName}
             />

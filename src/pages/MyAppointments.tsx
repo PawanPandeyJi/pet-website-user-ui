@@ -1,7 +1,10 @@
 import Loader from "../components/Loader";
 import NoDataMassage from "../components/NoDataMessage";
 import { io } from "socket.io-client";
-import { useAppointmentsQuery, useCancelAppointmentMutation } from "../store/api/pet-api";
+import {
+  useAppointmentsQuery,
+  useCancelAppointmentMutation,
+} from "../store/api/pet-api";
 import { useEffect } from "react";
 import AppointmentCard from "../components/AppointmentCard";
 
@@ -47,19 +50,21 @@ const MyAppointments = () => {
           marginTop: "0.5rem",
         }}
       >
-        {appointments.map((val) => {
+        {appointments.map((appointment) => {
           return (
             <AppointmentCard
-              key={val.id}
-              doctorImage={val.vetImage}
-              petImage={val.petImage}
-              doctorName={`${val.appointmentToDoctor.userAsDoctor.firstName} ${val.appointmentToDoctor.userAsDoctor.lastName}`}
-              petName={val.appointmentToPet.petName}
-              time={`${val.appointmentToDoctor.DoctorShedule[0].availableTimeFrom} - ${val.appointmentToDoctor.DoctorShedule[0].availableTimeTo}`}
-              day={val.appointmentDay}
-              canleAppointment={() => handleCancel(val.id)}
-              canceled={val.isCanceled}
-              isJoined={val.canJoin}
+              appointmentId={appointment.id}
+              doctorId={appointment.appointmentToDoctor.userAsDoctor.id}
+              key={appointment.id}
+              doctorImage={appointment.vetImage}
+              petImage={appointment.petImage}
+              doctorName={`${appointment.appointmentToDoctor.userAsDoctor.firstName} ${appointment.appointmentToDoctor.userAsDoctor.lastName}`}
+              petName={appointment.appointmentToPet.petName}
+              time={`${appointment.appointmentToDoctor.DoctorShedule[0].availableTimeFrom} - ${appointment.appointmentToDoctor.DoctorShedule[0].availableTimeTo}`}
+              day={appointment.appointmentDay}
+              canleAppointment={() => handleCancel(appointment.id)}
+              canceled={appointment.isCanceled}
+              isJoined={appointment.canJoin}
             />
           );
         })}

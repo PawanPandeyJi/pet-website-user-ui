@@ -47,13 +47,15 @@ export const userApi = createApi({
         body: { ...user, type },
       }),
     }),
-    loginUsers: builder.mutation<CreateUser, { user: LoginUser; type: string }>({
-      query: ({ user, type }) => ({
-        url: "/login",
-        method: "POST",
-        body: { ...user, type },
-      }),
-    }),
+    loginUsers: builder.mutation<CreateUser, { user: LoginUser; type: string }>(
+      {
+        query: ({ user, type }) => ({
+          url: "/login",
+          method: "POST",
+          body: { ...user, type },
+        }),
+      },
+    ),
     loginUserData: builder.query<LoggedUserData, void>({
       query: () => ({
         url: "/user",
@@ -63,4 +65,8 @@ export const userApi = createApi({
   }),
 });
 
-export const { useCreateUsersMutation, useLoginUsersMutation, useLoginUserDataQuery } = userApi;
+export const {
+  useCreateUsersMutation,
+  useLoginUsersMutation,
+  useLoginUserDataQuery,
+} = userApi;

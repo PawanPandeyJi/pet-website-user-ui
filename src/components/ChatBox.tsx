@@ -10,14 +10,64 @@ import {
   IconButton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { io } from "socket.io-client";
+import {
+  useCreateMessageMutation,
+  useGetMessagesQuery,
+} from "../store/api/chat.ts";
+import { useLoginUserDataQuery } from "../store/api/auth-api.ts";
+
+const socket = io("http://localhost:8000", {});
 
 type ModalFormProps = {
   doctorImage: string;
   doctorName: string;
   onClose?: () => void;
+  roomId: string;
 };
 
 const ChatBox = (props: ModalFormProps) => {
+  const [message, setMessage] = useState("");
+
+  const { data: loginUserData } = useLoginUserDataQuery();
+  const { data: messages, refetch, isSuccess } = useGetMessagesQuery(props.roomId, {
+    skip: !props.roomId,
+  });
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [createMessageApi] = useCreateMessageMutation();
+
+  const sendMessage = useCallback(async () => {           
+    if (!loginUserData?.id) return;
+
+    await createMessageApi({
+      message,
+      senderId: loginUserData.id,
+      roomId: props.roomId,
+    }).unwrap();
+
+    setMessage("");
+    inputRef.current?.focus()
+  }, [createMessageApi, loginUserData?.id, message, props.roomId]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      socket.on("messageUpdatedOnCreate", () => {
+        refetch();
+      });
+
+      return () => {
+        socket.off("messageUpdatedOnCreate");
+      };
+    }
+  }, [refetch, isSuccess]);
+
   return (
     <Paper
       elevation={3}
@@ -31,7 +81,6 @@ const ChatBox = (props: ModalFormProps) => {
         position: "relative",
       }}
     >
-      {/* Header */}
       <Box
         sx={{
           display: "flex",
@@ -43,7 +92,11 @@ const ChatBox = (props: ModalFormProps) => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Avatar src={props.doctorImage} alt="User" sx={{ mr: 2, width: 48, height: 48 }} />
+          <Avatar
+            src={props.doctorImage}
+            alt="User"
+            sx={{ mr: 2, width: 48, height: 48 }}
+          />
           <Typography variant="h6" sx={{ fontWeight: "bold" }}>
             {props.doctorName}
           </Typography>
@@ -59,7 +112,6 @@ const ChatBox = (props: ModalFormProps) => {
         </IconButton>
       </Box>
 
-      {/* Message List */}
       <List
         sx={{
           flexGrow: 1,
@@ -69,46 +121,62 @@ const ChatBox = (props: ModalFormProps) => {
           p: 1,
         }}
       >
-        <ListItem sx={{ justifyContent: "flex-start" }}>
-          <Box
-            sx={{
-              bgcolor: "#f1f1f1",
-              p: 1,
-              borderRadius: 2,
-              maxWidth: "70%",
-            }}
-          >
-            <Typography variant="body2">Hello! How are you?</Typography>
-          </Box>
-        </ListItem>
-        <ListItem sx={{ justifyContent: "flex-end" }}>
-          <Box
-            sx={{
-              bgcolor: "#1976d2",
-              color: "#fff",
-              p: 1,
-              borderRadius: 2,
-              maxWidth: "70%",
-            }}
-          >
-            <Typography variant="body2">I'm good, thank you!</Typography>
-          </Box>
-        </ListItem>
+         {messages?.map((message) => (
+      <ListItem
+        key={message.id}
+        sx={{
+          justifyContent:
+            message.senderId === loginUserData?.id ? "flex-end" : "flex-start",
+        }}
+      >
+        <Box
+          sx={{
+            bgcolor:
+              message.senderId === loginUserData?.id ? "#1976d2" : "#f1f1f1",
+            color: message.senderId === loginUserData?.id ? "#fff" : "#000",
+            p: 1,
+            borderRadius: 2,
+            maxWidth: "70%",
+            wordBreak: "break-word",
+          }}
+        >
+          <Typography variant="body2">{message.message}</Typography>
+        </Box>
+      </ListItem>
+    ))}
+        <div ref={messagesEndRef} />
       </List>
 
-      {/* Input and Send Button */}
       <Box
+       component="form"
+       onSubmit={(e) => {
+         e.preventDefault();
+         sendMessage();
+       }}
         sx={{
           display: "flex",
           alignItems: "center",
           mt: 2,
         }}
       >
-        <TextField fullWidth variant="outlined" size="small" placeholder="Type your message..." />
-        <Button variant="contained" color="primary" sx={{ ml: 2 }}>
+        <TextField
+          fullWidth
+          inputRef={inputRef}
+          variant="outlined"
+          size="small"
+          placeholder="Type your message..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+        <Button
+          variant="contained"
+          color="primary"
+          sx={{ ml: 2 }}
+          onClick={sendMessage}
+        >
           Send
         </Button>
-      </Box>
+      </Box>    
     </Paper>
   );
 };
