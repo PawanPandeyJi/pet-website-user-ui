@@ -10,6 +10,7 @@ import {
   Modal,
 } from "@mui/material";
 import { VaccinesOutlined } from "@mui/icons-material";
+import DownloadIcon from '@mui/icons-material/Download';
 import ChatBox from "./ChatBox";
 import { useCallback,   useEffect,   useState } from "react";
 import { useCreateRoomMutation, useGetRoomsQuery } from "../store/api/chat.ts";
@@ -159,7 +160,7 @@ const AppointmentCard = (props: AppointmentDataProps) => {
                 color="success"
                 onClick={joinAppointment}
               >
-                View Chat
+                View Chat or Prescription  <DownloadIcon color="inherit" sx={{ height: 20, width: 20 }} />
               </Button>
             </span>
             ) : (
