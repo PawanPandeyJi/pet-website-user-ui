@@ -35,6 +35,7 @@ type AppointmentDataProps = {
   day: string;
   canceled: boolean;
   isJoined: boolean;
+  isChatEnded: boolean;
   canleAppointment: () => void;
   doctorId: string;
   appointmentId: string;
@@ -146,15 +147,32 @@ const AppointmentCard = (props: AppointmentDataProps) => {
           justifyContent: "space-between",
         }}
       >
-        <Button
-          variant="outlined"
-          color="error"
-          onClick={props.canleAppointment}
-          disabled={props.canceled}
-        >
-          Cancel
-        </Button>
-        <Tooltip
+        {
+            !props.isJoined && props.isChatEnded ? (
+              <span style={{
+                display: "flex",
+                width: "100%",
+                justifyContent: "center",
+              }}>
+              <Button
+                variant="contained"
+                color="success"
+                // onClick={joinAppointment}
+              >
+                View Chat
+              </Button>
+            </span>
+            ) : (
+              <>
+              <Button
+              variant="outlined"
+              color="error"
+              onClick={props.canleAppointment}
+              disabled={props.canceled}
+            >
+              Cancel
+            </Button>
+              <Tooltip
           title={
             !props.isJoined
               ? `You Can Join Chat on ${props.day}`
@@ -172,6 +190,9 @@ const AppointmentCard = (props: AppointmentDataProps) => {
             </Button>
           </span>
         </Tooltip>
+        </>
+            )
+          }
       </CardActions>
       {props.canceled ? (
         <Typography

@@ -65,6 +65,7 @@ const MyAppointments = () => {
               canleAppointment={() => handleCancel(appointment.id)}
               canceled={appointment.isCanceled}
               isJoined={appointment.canJoin}
+              isChatEnded={appointment.isChatEnded}
             />
           );
         })}

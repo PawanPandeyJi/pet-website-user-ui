@@ -1,7 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { tokenFetchBaseQuery } from "./api";
 
-type Pet = {
+type PetResponse = {
   id: string;
   petName: string;
   age: string;
@@ -22,7 +22,7 @@ export type RequestPetRegisterData = {
   appointmentDay: string;
 };
 
-export type Appointment = {
+export type AppointmentResponse = {
   id: string;
   userId: string;
   doctorId: string;
@@ -30,6 +30,7 @@ export type Appointment = {
   appointmentDay: string;
   isCanceled: boolean;
   canJoin: boolean;
+  isChatEnded: boolean;
   appointmentToDoctor: {
     id: string;
     dob: string;
@@ -109,7 +110,7 @@ export const petApi = createApi({
       }),
       invalidatesTags: ["pet"],
     }),
-    getPets: builder.query<Pet[], void>({
+    getPets: builder.query<PetResponse[], void>({
       query: () => ({
         url: "/pet",
         method: "GET",
@@ -138,7 +139,7 @@ export const petApi = createApi({
       }),
       invalidatesTags: ["appointments"],
     }),
-    appointments: builder.query<Appointment[], void>({
+    appointments: builder.query<AppointmentResponse[], void>({
       query: () => ({
         url: "/appointments",
         method: "GET",
