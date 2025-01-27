@@ -16,6 +16,7 @@ import { useCallback,   useEffect,   useState } from "react";
 import { useCreateRoomMutation, useGetRoomsQuery } from "../store/api/chat.ts";
 import { useLoginUserDataQuery } from "../store/api/auth-api.ts";
 import { io } from "socket.io-client";
+import ConfirmMessageCard from "./ConfirmMessageCard.tsx";
 
 
 const socket = io("http://localhost:8000", {});
@@ -44,6 +45,7 @@ type AppointmentDataProps = {
 
 const AppointmentCard = (props: AppointmentDataProps) => {
   const [openChatBox, setOpenChatBox] = useState(false);
+  const [openConfirmCard, setOpenConfirmCard] = useState(false);
   const [roomId, setRoomId] = useState<string>();
 
   
@@ -54,6 +56,7 @@ const AppointmentCard = (props: AppointmentDataProps) => {
   const [createRoomApi] = useCreateRoomMutation();
 
   const handleClose = () => setOpenChatBox(false);
+  const handleConfirmCardClose = () => setOpenConfirmCard(false);
 
   const joinAppointment = useCallback(async () => {
     if (!loginUserData?.id) return;
@@ -168,7 +171,7 @@ const AppointmentCard = (props: AppointmentDataProps) => {
               <Button
               variant="outlined"
               color="error"
-              onClick={props.canleAppointment}
+              onClick={() => setOpenConfirmCard(true)}
               disabled={props.canceled}
             >
               Cancel
@@ -224,6 +227,21 @@ const AppointmentCard = (props: AppointmentDataProps) => {
               doctorName={props.doctorName}
               isJoined={props.isJoined}
               isChatEnded={props.isChatEnded}
+            />
+          </Box>
+        </Modal>
+      </div>
+      <div>
+        <Modal open={openConfirmCard} onClose={handleConfirmCardClose}>
+          <Box sx={style}>
+            <ConfirmMessageCard
+              title={"Confirm"}
+              message={`Are you sure to cancel appointment with ${props.doctorName}`}
+              onConfirm={() => {
+                props.canleAppointment();
+                setOpenConfirmCard(false);
+              }}
+              onCancel={() => setOpenConfirmCard(false)}
             />
           </Box>
         </Modal>
