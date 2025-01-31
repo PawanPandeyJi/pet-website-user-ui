@@ -17,7 +17,7 @@ function ResponsiveAppBar() {
   });
 
   return (
-    <AppBar position="static">
+    <AppBar position="sticky" id="navbar">
       <Toolbar>
         <Typography
           variant="h6"

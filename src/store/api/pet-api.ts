@@ -1,7 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { tokenFetchBaseQuery } from "./api";
 
-type Pet = {
+type PetResponse = {
   id: string;
   petName: string;
   age: string;
@@ -22,7 +22,7 @@ export type RequestPetRegisterData = {
   appointmentDay: string;
 };
 
-export type Appointment = {
+export type AppointmentResponse = {
   id: string;
   userId: string;
   doctorId: string;
@@ -30,6 +30,8 @@ export type Appointment = {
   appointmentDay: string;
   isCanceled: boolean;
   canJoin: boolean;
+  isChatEnded: boolean;
+  isPrescribed: boolean;
   appointmentToDoctor: {
     id: string;
     dob: string;
@@ -94,6 +96,24 @@ type CreatePet = {
   token?: string;
 };
 
+type MedicineResponse = {
+  drugName: string;
+  doseTime: string;
+  frequency: string;
+  dose: string;
+  drugForm: string;
+  duration: string;
+};
+
+type PrescriptionResponse = {
+  id: string;
+  diagnosis: string;
+  remarks: string;
+  appointmentId: string;
+  createdAt: string;
+  medicineOfPrescription: MedicineResponse[];
+};
+
 export const petApi = createApi({
   reducerPath: "petApi",
   baseQuery: tokenFetchBaseQuery({
@@ -109,13 +129,15 @@ export const petApi = createApi({
       }),
       invalidatesTags: ["pet"],
     }),
-    getPets: builder.query<Pet[], void>({
+
+    getPets: builder.query<PetResponse[], void>({
       query: () => ({
         url: "/pet",
         method: "GET",
       }),
       providesTags: ["pet"],
     }),
+
     deletePet: builder.mutation<void, string>({
       query: (id) => ({
         url: `/pet/${id}`,
@@ -123,6 +145,7 @@ export const petApi = createApi({
       }),
       invalidatesTags: ["pet"],
     }),
+
     createAppointment: builder.mutation<AppointmentError, RequestPetRegisterData>({
       query: (appintmentForm) => ({
         url: "/appointment",
@@ -131,6 +154,7 @@ export const petApi = createApi({
       }),
       invalidatesTags: ["appointments"],
     }),
+
     cancelAppointment: builder.mutation<void, string>({
       query: (id) => ({
         url: `/appointment/${id}`,
@@ -138,12 +162,20 @@ export const petApi = createApi({
       }),
       invalidatesTags: ["appointments"],
     }),
-    appointments: builder.query<Appointment[], void>({
+
+    appointments: builder.query<AppointmentResponse[], void>({
       query: () => ({
         url: "/appointments",
         method: "GET",
       }),
       providesTags: ["appointments"],
+    }),
+    
+    getPrescriptions: builder.query<PrescriptionResponse[], void>({
+      query: () => ({
+        url: "/userPrescription",
+        method: "GET",
+      }),
     }),
   }),
 });
@@ -155,4 +187,5 @@ export const {
   useCreateAppointmentMutation,
   useAppointmentsQuery,
   useCancelAppointmentMutation,
+  useGetPrescriptionsQuery
 } = petApi;

@@ -10,11 +10,13 @@ import {
   Modal,
 } from "@mui/material";
 import { VaccinesOutlined } from "@mui/icons-material";
+import DownloadIcon from '@mui/icons-material/Download';
 import ChatBox from "./ChatBox";
 import { useCallback,   useEffect,   useState } from "react";
 import { useCreateRoomMutation, useGetRoomsQuery } from "../store/api/chat.ts";
 import { useLoginUserDataQuery } from "../store/api/auth-api.ts";
 import { io } from "socket.io-client";
+import ConfirmMessageCard from "./ConfirmMessageCard.tsx";
 
 
 const socket = io("http://localhost:8000", {});
@@ -35,13 +37,16 @@ type AppointmentDataProps = {
   day: string;
   canceled: boolean;
   isJoined: boolean;
+  isChatEnded: boolean;
   canleAppointment: () => void;
   doctorId: string;
   appointmentId: string;
+  isPrescribed: boolean
 };
 
 const AppointmentCard = (props: AppointmentDataProps) => {
   const [openChatBox, setOpenChatBox] = useState(false);
+  const [openConfirmCard, setOpenConfirmCard] = useState(false);
   const [roomId, setRoomId] = useState<string>();
 
   
@@ -52,6 +57,7 @@ const AppointmentCard = (props: AppointmentDataProps) => {
   const [createRoomApi] = useCreateRoomMutation();
 
   const handleClose = () => setOpenChatBox(false);
+  const handleConfirmCardClose = () => setOpenConfirmCard(false);
 
   const joinAppointment = useCallback(async () => {
     if (!loginUserData?.id) return;
@@ -146,15 +152,32 @@ const AppointmentCard = (props: AppointmentDataProps) => {
           justifyContent: "space-between",
         }}
       >
-        <Button
-          variant="outlined"
-          color="error"
-          onClick={props.canleAppointment}
-          disabled={props.canceled}
-        >
-          Cancel
-        </Button>
-        <Tooltip
+        {
+            !props.isJoined && props.isChatEnded ? (
+              <span style={{
+                display: "flex",
+                width: "100%",
+                justifyContent: "center",
+              }}>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={joinAppointment}
+              >
+                View Chat or Prescription  <DownloadIcon color="inherit" sx={{ height: 20, width: 20 }} />
+              </Button>
+            </span>
+            ) : (
+              <>
+              <Button
+              variant="outlined"
+              color="error"
+              onClick={() => setOpenConfirmCard(true)}
+              disabled={props.canceled}
+            >
+              Cancel
+            </Button>
+              <Tooltip
           title={
             !props.isJoined
               ? `You Can Join Chat on ${props.day}`
@@ -172,6 +195,9 @@ const AppointmentCard = (props: AppointmentDataProps) => {
             </Button>
           </span>
         </Tooltip>
+        </>
+            )
+          }
       </CardActions>
       {props.canceled ? (
         <Typography
@@ -200,6 +226,25 @@ const AppointmentCard = (props: AppointmentDataProps) => {
               onClose={() => setOpenChatBox(false)}
               doctorImage={props.doctorImage}
               doctorName={props.doctorName}
+              isJoined={props.isJoined}
+              isChatEnded={props.isChatEnded}
+              appointmentId={props.appointmentId}
+              isPrescribed={props.isPrescribed}
+            />
+          </Box>
+        </Modal>
+      </div>
+      <div>
+        <Modal open={openConfirmCard} onClose={handleConfirmCardClose}>
+          <Box sx={style}>
+            <ConfirmMessageCard
+              title={"Confirm"}
+              message={`Are you sure to cancel appointment with ${props.doctorName}`}
+              onConfirm={() => {
+                props.canleAppointment();
+                setOpenConfirmCard(false);
+              }}
+              onCancel={() => setOpenConfirmCard(false)}
             />
           </Box>
         </Modal>

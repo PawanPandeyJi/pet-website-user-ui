@@ -46,3 +46,13 @@
     height: 100%;
 }
 
+@media print {
+    .printPrescription>button {
+        display: none;
+    }
+
+    #navbar {
+        display: none;
+    }
+
+}

@@ -21,6 +21,9 @@ const MyAppointments = () => {
     socket.on("appointmentUpdatedOnConnect", () => {
       refetch();
     });
+    socket.on("refetchOnPrecriptionUpload", () => {
+      refetch();
+    });
   }, [refetch]);
 
   const handleCancel = async (id: string) => {
@@ -65,6 +68,8 @@ const MyAppointments = () => {
               canleAppointment={() => handleCancel(appointment.id)}
               canceled={appointment.isCanceled}
               isJoined={appointment.canJoin}
+              isChatEnded={appointment.isChatEnded}
+              isPrescribed={appointment.isPrescribed}
             />
           );
         })}
