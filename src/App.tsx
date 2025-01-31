@@ -9,6 +9,7 @@ import VetPage from "./pages/VetPage";
 import MyPet from "./pages/MyPet";
 import Appointment from "./pages/Appointment";
 import MyAppointments from "./pages/MyAppointments";
+import PrescriptionView from "./components/PrescriptioniewPage";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/mypet" element={<MyPet />} />
           <Route path="/vet" element={<VetPage />} />
           <Route path="/appointment/:id" element={<Appointment />} />
+          <Route path="/prescriptions/:prescriptionId" element={<PrescriptionView />} />
           <Route path="/myappointment" element={<MyAppointments />} />
           <Route path="/logout" element={<Logout />} />
         </Routes>

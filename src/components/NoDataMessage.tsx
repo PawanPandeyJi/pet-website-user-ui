@@ -1,7 +1,7 @@
 import { Typography } from "@mui/material";
 
 type Props = {
-  message: JSX.Element;
+  message: JSX.Element | string;
 };
 
 const NoDataMassage = (props: Props) => {

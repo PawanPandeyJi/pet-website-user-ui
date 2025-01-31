@@ -41,6 +41,7 @@ type AppointmentDataProps = {
   canleAppointment: () => void;
   doctorId: string;
   appointmentId: string;
+  isPrescribed: boolean
 };
 
 const AppointmentCard = (props: AppointmentDataProps) => {
@@ -227,6 +228,8 @@ const AppointmentCard = (props: AppointmentDataProps) => {
               doctorName={props.doctorName}
               isJoined={props.isJoined}
               isChatEnded={props.isChatEnded}
+              appointmentId={props.appointmentId}
+              isPrescribed={props.isPrescribed}
             />
           </Box>
         </Modal>

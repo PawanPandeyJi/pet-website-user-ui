@@ -17,6 +17,9 @@ import {
   useGetMessagesQuery,
 } from "../store/api/chat.ts";
 import { useLoginUserDataQuery } from "../store/api/auth-api.ts";
+import { useNavigate } from "react-router-dom";
+import { useGetPrescriptionsQuery } from "../store/api/pet-api.ts";
+import NoDataMassage from "./NoDataMessage.tsx";
 
 const socket = io("http://localhost:8000", {});
 
@@ -27,6 +30,8 @@ type ModalFormProps = {
   roomId: string;
   isJoined: boolean;
   isChatEnded: boolean;
+  isPrescribed: boolean;
+  appointmentId: string
 };
 
 const ChatBox = (props: ModalFormProps) => {
@@ -40,6 +45,9 @@ const ChatBox = (props: ModalFormProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [createMessageApi] = useCreateMessageMutation();
+  const {data: prescriptions,isSuccess: isSuccessPrescription,refetch:refetchPrescription} = useGetPrescriptionsQuery()
+
+  const navigate = useNavigate()
 
   const sendMessage = useCallback(async () => {           
     if (!loginUserData?.id) return;
@@ -54,9 +62,25 @@ const ChatBox = (props: ModalFormProps) => {
     inputRef.current?.focus()
   }, [createMessageApi, loginUserData?.id, message, props.roomId]);
 
+  const handlePrescriptionPage = (appointmentId: string) => {
+    const prescriptionId  = prescriptions?.filter((prescriptionId) => prescriptionId.appointmentId === appointmentId)
+    if(!prescriptionId) {
+      return <NoDataMassage message="No prescription Data found!"/>
+    }
+    navigate(`/prescriptions/${prescriptionId[0]?.id}`);
+  };
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if(isSuccessPrescription) {
+      socket.on("refetchOnPrecriptionUpload", () => {
+        refetchPrescription();
+      });
+    }
+  }, [refetchPrescription,isSuccessPrescription]);
 
   useEffect(() => {
     if (isSuccess) {
@@ -154,9 +178,10 @@ const ChatBox = (props: ModalFormProps) => {
         variant="contained"
         color="success"
         sx={{ mt: 2 }}
-        // onClick={sendMessage}
+        onClick={() => handlePrescriptionPage(props.appointmentId)}
+        disabled={!props.isPrescribed ? true : false}
       >
-        Download Prescription
+        {props.isPrescribed ? "Download Prescription" : "Waiting for Prescription"}
       </Button>
       ) : (
         <>
